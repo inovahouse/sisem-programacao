@@ -22,6 +22,8 @@ class SISEM_Shortcodes {
 
   // Renderiza o Shortcode [sisem-programacao]
   public function shortcode_programacao( $params ) {
+    wp_register_script( 'bootstrap-calendar', 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js', array( 'jquery' ), '', true );
+    wp_enqueue_script( 'bootstrap-calendar' );
     return $this->layout_render('pagina', 'conteudo');
   }
 
