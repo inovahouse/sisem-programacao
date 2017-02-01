@@ -43,24 +43,7 @@
 
   <!-- Container do Conteúdo -->
   <div id="sisem-programacao-conteudo" class="col-md-9 pull-right">
-    <ul class="listagem-de-eventos">
-      <!--
-      <li class="evento">
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-md-3">
-              <img class="img-rounded" />
-            </div>
-            <div class="col-md-9">
-              <h3 class="titulo">TESTE</h3>
-              <p class="descricao">DESCRIÇÃO</p>
-              <p class="saiba-mais"><a href="#">Saiba Mais</a></p>
-            </div>
-
-          </div>
-        </div>
-      </li>-->
-    </ul>
+    <table id="eventos"></table>
   </div>
 
 </div>
@@ -68,49 +51,80 @@
 <!-- Javascript da Página -->
 <script type="text/javascript">
   jQuery(window).ready(function($) {
-    // Efetua a Requisição dos Eventos em geral à partir da Data Atual
+
+    var eventos = [];
+    var args = {
+      data: eventos,
+      columns : [
+        { title: 'ID', visible: false },
+        {
+          title: 'Eventos da Programação',
+          data: null,
+          render: function (data, type, row) {
+            content = '<div id="evento-'+data[0]+'" "class="container-fluid">';
+            content += '<div class="row">';
+            content += '<div class="col-md-3"><div class="row"><img src="'+data[1]+'" class="img-rounded"></div></div>';
+            content += '<div class="col-md-9">'
+            content += '<div class="row"><div class="col-md-12"><h3 id="evento-nome">'+data[2]+'</h3></div></div>';
+            content += '<div class="row"><div class="col-md-12"><p id="evento-descricao">'+data[3]+'</p></div></div>'
+            content += '<div class="row"><div class="col-md-12"><a id="evento-url" href='+data[4]+'>Saiba Mais</a></div></div>'
+            content += '</div></div></div>';
+            return content;
+          }
+        }
+      ]
+    }
+
+    // Renderiza o Evento na Lista de Eventos
+    function renderEvento(evento) {
+      var eventoDados = [evento.id];
+      // Insere a Imagem do Evento
+      if (typeof evento['@files:avatar'] != 'undefined') {
+        eventoDados.push(evento['@files:avatar'].url);
+      }
+      else {
+        eventoDados.push('');
+      }
+      // Insere o Título do Evento
+      eventoDados.push(evento.name);
+      // Insere a Descrição do Evento
+      if (typeof evento['shortDescription'] != 'undefined') {
+        eventoDados.push(evento.shortDescription);
+      }
+      else {
+        eventoDados.push('');
+      }
+      // Insere a Descrição do Evento
+      eventoDados.push('<?= home_url('/programacao/evento')?>/'+evento.id);
+      // Retorna os Dados
+      return eventoDados;
+    }
+
+    // Ativa o plugin de Datepicker para o filtro de Data
     $('#sisem-programacao-lateral div.data-selecionada').datepicker({
         language: "pt-BR",
         orientation: "auto left"
     });
+
+    // Efetua a Requisição dos Eventos em geral à partir da Data Atual
     $.getJSON(
-      'http://spcultura.prefeitura.sp.gov.br/api/event/findByLocation',
+      'http://estadodacultura.sp.gov.br/api/event/findByLocation',
       {
         '@from': '<?= date("Y-m-d") ?>',
         '@to': '<?= date("Y-m-d") ?>',
         '@select': 'id,name,location,shortDescription',
-        '@files': '(avatar.avatarMedium):url',
+        '@files': '(avatar):url',
         '@order': 'name ASC'
       },
       function (response){
-        console.log(response);
         $.each(response, function(k,v) {
-          var eventoID = 'evento-'+v.id;
-          var html = '<div class="row"><div class="col-md-3"><img id="imagem" class="img-rounded" /></div><div class="col-md-9"><h3 id="titulo" /><p id="descricao" /><p id="saiba-mais" /></div></div>';
-
-          // Cria a Entrada do Evento
-          jQuery('<li />', {
-            id: eventoID
-          }).appendTo('#sisem-programacao-conteudo ul.listagem-de-eventos');
-          jQuery('#'+eventoID).html(html);
-
-          // Insere a Imagem do Evento
-          if (typeof v['@files:avatar.avatarMedium'] != 'undefined') {
-            jQuery('#'+eventoID+' #imagem').attr('src', v['@files:avatar.avatarMedium'].url);
-          }
-          // Insere o Título do Evento
-          jQuery('#'+eventoID+' #titulo').text(v.name);
-
-          // Insere a Descrição do Evento
-          if (typeof v['shortDescription'] != 'undefined') {
-            jQuery('#'+eventoID+' #descricao').text(v.shortDescription);
-          }
-
-          // Insere a Descrição do Evento
-          jQuery('#'+eventoID+' #saiba-mais').html('<a href="<?= home_url('/programacao/evento')?>/'+v.id+'-'+encodeURI(v.name)+'">Saiba Mais</a>');
-
+          // Insere o Evento dentro do Array com todos os Eventos
+          eventos.push(renderEvento(v));
         });
+        // Inicializa a dataTable com a programação
+        $("#eventos").DataTable(args);
       }
     );
+
   });
 </script>

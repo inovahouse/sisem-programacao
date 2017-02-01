@@ -22,9 +22,16 @@ class SISEM_Shortcodes {
 
   // Renderiza o Shortcode [sisem-programacao]
   public function shortcode_programacao( $params ) {
-    wp_register_script( 'bootstrap-calendar', 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js', array( 'jquery' ), '', true );
+    $js_path = plugins_url().'/sisem-programacao/js';
+    $css_path = plugins_url().'/sisem-programacao/css';
+    wp_register_script( 'bootstrap-calendar', $js_path.'/bootstrap-datepicker.min.js', array( 'jquery' ), '', true );
+    wp_register_script( 'datatables', $js_path.'/jquery.dataTables.min.js', array(), '', true );
+    wp_register_style( 'datatables-css', $css_path.'/jquery.dataTables.min.css');
     wp_enqueue_script( 'bootstrap-calendar' );
+    wp_enqueue_script( 'datatables' );
+    wp_enqueue_style( 'datatables-css' );
     return $this->layout_render('pagina', 'conteudo');
+
   }
 
   // Renderiza o Shortcode [sisem-destaque]
