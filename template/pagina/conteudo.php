@@ -22,7 +22,7 @@
       <div class="row">
         <div class="col-md-12 form-group">
           <label for="linguagem">Por Linguagem:</label>
-          <select name="linguagem">
+          <select id="lista-de-linguagens" name="linguagem">
             <option>Todos</option>
           </select>
         </div>
@@ -51,9 +51,9 @@
 <!-- Javascript da Página -->
 <script type="text/javascript">
   jQuery(window).ready(function($) {
-
     var eventos = [];
     var museus = [6, 7, 11, 15, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 85, 1444];
+    var linguagens = [{"value":"Artes Circenses","label":"Artes Circenses"},{"value":"Artes Integradas","label":"Artes Integradas"},{"value":"Artes Visuais","label":"Artes Visuais"},{"value":"Audiovisual","label":"Audiovisual"},{"value":"Cinema","label":"Cinema"},{"value":"Cultura Digital","label":"Cultura Digital"},{"value":"Cultura Ind\u00edgena","label":"Cultura Ind\u00edgena"},{"value":"Cultura Tradicional","label":"Cultura Tradicional"},{"value":"Curso ou Oficina","label":"Curso ou Oficina"},{"value":"Dan\u00e7a","label":"Dan\u00e7a"},{"value":"Exposi\u00e7\u00e3o","label":"Exposi\u00e7\u00e3o"},{"value":"Hip Hop","label":"Hip Hop"},{"value":"Livro e Literatura","label":"Livro e Literatura"},{"value":"M\u00fasica Popular","label":"M\u00fasica Popular"},{"value":"M\u00fasica Erudita","label":"M\u00fasica Erudita"},{"value":"Palestra\\, Debate ou Encontro","label":"Palestra, Debate ou Encontro"},{"value":"R\u00e1dio","label":"R\u00e1dio"},{"value":"Teatro","label":"Teatro"},{"value":"Outros","label":"Outros"}];
     var listagem;
     var args = {
       data: eventos,
@@ -75,6 +75,49 @@
           }
         }
       ]
+    }
+
+    // Filtra os Eventos na Lista de Eventos
+    function filtraEventos(museuID, linguagemID) {
+
+      // Verifica se a opção Todos os Museus está selecionada
+      if (museuID == 'Todos') {
+        buscaMuseu = 'IN ('+museus.join()+')';
+      }
+      else {
+        buscaMuseu = 'EQ ('+museuID+')';
+      }
+
+      // Verifica se a opção Todos as Linguagens está selecionada
+      if (linguagemID == 'Todos') {
+        buscaLinguagem = 'NULL';
+      }
+      else {
+        buscaLinguagem = 'EQ ('+linguagemID+')';
+      }
+
+
+      // Efetua a Requisição dos Eventos em geral à partir da Data Atual
+      $.getJSON(
+        'http://estadodacultura.sp.gov.br/api/event/findByLocation',
+        {
+          '@from': '<?= date("Y-m-d") ?>',
+          '@to': '<?= date("Y-m-d") ?>',
+          '@select': 'id,name,location,shortDescription,singleUrl',
+          '@files': '(avatar):url',
+          '@order': 'name ASC',
+          'space': buscaMuseu,
+          'term:linguagem': buscaLinguagem
+        },
+        function (response){
+          $.each(response, function(k,v) {
+            // Insere o Evento dentro do Array com todos os Eventos
+            eventos.push(renderEvento(v));
+          });
+          // Inicializa a dataTable com a programação
+          listagem.clear().rows.add(eventos).draw()
+        }
+      );
     }
 
     // Renderiza o Evento na Lista de Eventos
@@ -112,6 +155,15 @@
         jQuery('#lista-de-museus').append(item);
     }
 
+    // Renderiza as Linguagens na Lista de Linguagens
+    function renderLinguagens(linguagem) {
+      var item = jQuery('<option />', {
+        value: linguagem.value,
+        text: linguagem.label
+      });
+      jQuery('#lista-de-linguagens').append(item);
+    }
+
     // Ativa o plugin de Datepicker para o filtro de Data
     $('#sisem-programacao-lateral div.data-selecionada').datepicker({
         language: "pt-BR",
@@ -132,6 +184,11 @@
         });
       }
     );
+
+    // Efetua a criação das opções de linguagem
+    $.each(linguagens, function(k, v) {
+      renderLinguagens(v);
+    });
 
     // Efetua a Requisição dos Eventos em geral à partir da Data Atual
     $.getJSON(
@@ -158,33 +215,18 @@
     $(document).on('change', '#lista-de-museus', function(e) {
       e.preventDefault();
       eventos = [];
-      valor = $(this).val();
-      if (valor == 'Todos') {
-        busca = 'IN ('+museus.join()+')';
-      }
-      else {
-        busca = 'EQ ('+valor+')';
-      }
-      // Efetua a Requisição dos Eventos em geral à partir da Data Atual
-      $.getJSON(
-        'http://estadodacultura.sp.gov.br/api/event/findByLocation',
-        {
-          '@from': '<?= date("Y-m-d") ?>',
-          '@to': '<?= date("Y-m-d") ?>',
-          '@select': 'id,name,location,shortDescription,singleUrl',
-          '@files': '(avatar):url',
-          '@order': 'name ASC',
-          'space': busca
-        },
-        function (response){
-          $.each(response, function(k,v) {
-            // Insere o Evento dentro do Array com todos os Eventos
-            eventos.push(renderEvento(v));
-          });
-          // Inicializa a dataTable com a programação
-          listagem.clear().rows.add(eventos).draw()
-        }
-      );
+      museuID = $(this).val();
+      linguagemID = $('#lista-de-linguagens').val();
+      filtraEventos(museuID, linguagemID);
+    });
+
+    // Adiciona o Filtro por Linguagem Selecionada
+    $(document).on('change', '#lista-de-linguagens', function(e) {
+      e.preventDefault();
+      eventos = [];
+      museuID = $('#lista-de-museus').val();
+      linguagemID = $(this).val();
+      filtraEventos(museuID, linguagemID);
     });
 
   });
