@@ -14,8 +14,8 @@
       <div class="row">
         <div class="col-md-12 form-group">
           <label for="museu">Por Museu:</label>
-          <select name="museu">
-            <option>Teste</option>
+          <select id="lista-de-museus" name="museu">
+            <option>Todos</option>
           </select>
         </div>
       </div>
@@ -23,7 +23,7 @@
         <div class="col-md-12 form-group">
           <label for="linguagem">Por Linguagem:</label>
           <select name="linguagem">
-            <option>Teste</option>
+            <option>Todos</option>
           </select>
         </div>
       </div>
@@ -53,6 +53,8 @@
   jQuery(window).ready(function($) {
 
     var eventos = [];
+    var museus = [6, 7, 11, 15, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 85, 1444];
+    var listagem;
     var args = {
       data: eventos,
       columns : [
@@ -95,9 +97,19 @@
         eventoDados.push('');
       }
       // Insere a Descrição do Evento
-      eventoDados.push('<?= home_url('/programacao/evento')?>/'+evento.id);
+      eventoDados.push(evento.singleUrl);
       // Retorna os Dados
       return eventoDados;
+    }
+
+
+    // Renderiza os Museus na Lista de Museus
+    function renderMuseus(museu) {
+        var item = jQuery('<option />', {
+          value: museu.id,
+          text: museu.name
+        });
+        jQuery('#lista-de-museus').append(item);
     }
 
     // Ativa o plugin de Datepicker para o filtro de Data
@@ -106,15 +118,31 @@
         orientation: "auto left"
     });
 
+    // Efetua a Requisição dos Museus pré-definidos
+    $.getJSON(
+      'http://estadodacultura.sp.gov.br/api/space/find/',
+      {
+        'id': 'IN ('+museus.join()+')',
+        '@select': 'id,name,location',
+        '@order': 'name ASC',
+      },
+      function(response) {
+        $.each(response, function (k,v) {
+          renderMuseus(v);
+        });
+      }
+    );
+
     // Efetua a Requisição dos Eventos em geral à partir da Data Atual
     $.getJSON(
       'http://estadodacultura.sp.gov.br/api/event/findByLocation',
       {
         '@from': '<?= date("Y-m-d") ?>',
         '@to': '<?= date("Y-m-d") ?>',
-        '@select': 'id,name,location,shortDescription',
+        '@select': 'id,name,location,shortDescription,singleUrl',
         '@files': '(avatar):url',
-        '@order': 'name ASC'
+        '@order': 'name ASC',
+        'space': 'IN ('+museus.join()+')'
       },
       function (response){
         $.each(response, function(k,v) {
@@ -122,9 +150,42 @@
           eventos.push(renderEvento(v));
         });
         // Inicializa a dataTable com a programação
-        $("#eventos").DataTable(args);
+        listagem = $("#eventos").DataTable(args);
       }
     );
+
+    // Adiciona o Filtro por Museu Selecionado
+    $(document).on('change', '#lista-de-museus', function(e) {
+      e.preventDefault();
+      eventos = [];
+      valor = $(this).val();
+      if (valor == 'Todos') {
+        busca = 'IN ('+museus.join()+')';
+      }
+      else {
+        busca = 'EQ ('+valor+')';
+      }
+      // Efetua a Requisição dos Eventos em geral à partir da Data Atual
+      $.getJSON(
+        'http://estadodacultura.sp.gov.br/api/event/findByLocation',
+        {
+          '@from': '<?= date("Y-m-d") ?>',
+          '@to': '<?= date("Y-m-d") ?>',
+          '@select': 'id,name,location,shortDescription,singleUrl',
+          '@files': '(avatar):url',
+          '@order': 'name ASC',
+          'space': busca
+        },
+        function (response){
+          $.each(response, function(k,v) {
+            // Insere o Evento dentro do Array com todos os Eventos
+            eventos.push(renderEvento(v));
+          });
+          // Inicializa a dataTable com a programação
+          listagem.clear().rows.add(eventos).draw()
+        }
+      );
+    });
 
   });
 </script>
