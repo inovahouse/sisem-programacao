@@ -35,7 +35,7 @@
       </div>
       <div class="row">
         <div class="col-md-12 form-group">
-          <button class="btn btn-lg btn-danger">BUSCAR</button>
+          <button id="filtrar" class="btn btn-lg btn-danger">FILTRAR</button>
         </div>
       </div>
     </div>
@@ -54,6 +54,9 @@
     var eventos = [];
     var museus = [6, 7, 11, 15, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 85, 1444];
     var linguagens = [{"value":"Artes Circenses","label":"Artes Circenses"},{"value":"Artes Integradas","label":"Artes Integradas"},{"value":"Artes Visuais","label":"Artes Visuais"},{"value":"Audiovisual","label":"Audiovisual"},{"value":"Cinema","label":"Cinema"},{"value":"Cultura Digital","label":"Cultura Digital"},{"value":"Cultura Ind\u00edgena","label":"Cultura Ind\u00edgena"},{"value":"Cultura Tradicional","label":"Cultura Tradicional"},{"value":"Curso ou Oficina","label":"Curso ou Oficina"},{"value":"Dan\u00e7a","label":"Dan\u00e7a"},{"value":"Exposi\u00e7\u00e3o","label":"Exposi\u00e7\u00e3o"},{"value":"Hip Hop","label":"Hip Hop"},{"value":"Livro e Literatura","label":"Livro e Literatura"},{"value":"M\u00fasica Popular","label":"M\u00fasica Popular"},{"value":"M\u00fasica Erudita","label":"M\u00fasica Erudita"},{"value":"Palestra\\, Debate ou Encontro","label":"Palestra, Debate ou Encontro"},{"value":"R\u00e1dio","label":"R\u00e1dio"},{"value":"Teatro","label":"Teatro"},{"value":"Outros","label":"Outros"}];
+    var data_selecionada = "<?= date('Y-m-d'); ?>";
+    var museu_selecionado = 'Todos';
+    var linguagem_selecionada = 'Todos';
     var listagem;
     var args = {
       data: eventos,
@@ -78,7 +81,7 @@
     }
 
     // Filtra os Eventos na Lista de Eventos
-    function filtraEventos(museuID, linguagemID) {
+    function filtraEventos(museuID, linguagemID, data) {
 
       // Verifica se a opção Todos os Museus está selecionada
       if (museuID == 'Todos') {
@@ -90,7 +93,7 @@
 
       // Verifica se a opção Todos as Linguagens está selecionada
       if (linguagemID == 'Todos') {
-        buscaLinguagem = 'NULL';
+        buscaLinguagem = 'NULL ()';
       }
       else {
         buscaLinguagem = 'EQ ('+linguagemID+')';
@@ -101,8 +104,8 @@
       $.getJSON(
         'http://estadodacultura.sp.gov.br/api/event/findByLocation',
         {
-          '@from': '<?= date("Y-m-d") ?>',
-          '@to': '<?= date("Y-m-d") ?>',
+          '@from': data,
+          '@to': data,
           '@select': 'id,name,location,shortDescription,singleUrl',
           '@files': '(avatar):url',
           '@order': 'name ASC',
@@ -164,12 +167,6 @@
       jQuery('#lista-de-linguagens').append(item);
     }
 
-    // Ativa o plugin de Datepicker para o filtro de Data
-    $('#sisem-programacao-lateral div.data-selecionada').datepicker({
-        language: "pt-BR",
-        orientation: "auto left"
-    });
-
     // Efetua a Requisição dos Museus pré-definidos
     $.getJSON(
       'http://estadodacultura.sp.gov.br/api/space/find/',
@@ -194,8 +191,8 @@
     $.getJSON(
       'http://estadodacultura.sp.gov.br/api/event/findByLocation',
       {
-        '@from': '<?= date("Y-m-d") ?>',
-        '@to': '<?= date("Y-m-d") ?>',
+        '@from': data_selecionada,
+        '@to': data_selecionada,
         '@select': 'id,name,location,shortDescription,singleUrl',
         '@files': '(avatar):url',
         '@order': 'name ASC',
@@ -211,22 +208,33 @@
       }
     );
 
+    // Ativa o plugin de Datepicker para o filtro de Data
+    var datepicker = $('#sisem-programacao-lateral div.data-selecionada').datepicker({
+        language: "pt-BR",
+        orientation: "auto left",
+    }).on('changeDate', function(e) {
+      var d = new Date(e.date);
+      data_selecionada = d.toISOString().slice(0,10);
+    });
+
+
     // Adiciona o Filtro por Museu Selecionado
     $(document).on('change', '#lista-de-museus', function(e) {
       e.preventDefault();
-      eventos = [];
-      museuID = $(this).val();
-      linguagemID = $('#lista-de-linguagens').val();
-      filtraEventos(museuID, linguagemID);
+      museu_selecionado = $(this).val();
     });
 
     // Adiciona o Filtro por Linguagem Selecionada
     $(document).on('change', '#lista-de-linguagens', function(e) {
       e.preventDefault();
+      linguagem_selecionada = $(this).val();
+    });
+
+    // Adiciona a ação do botão Buscar
+    $(document).on('click', '#filtrar', function(e) {
+      e.preventDefault();
       eventos = [];
-      museuID = $('#lista-de-museus').val();
-      linguagemID = $(this).val();
-      filtraEventos(museuID, linguagemID);
+      filtraEventos(museu_selecionado, linguagem_selecionada, data_selecionada);
     });
 
   });
