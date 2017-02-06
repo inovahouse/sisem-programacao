@@ -71,7 +71,7 @@
             content += '<div class="col-md-6 evento-conteudo">'
             content += '<div class="row"><div class="col-md-12"><h3 id="evento-museu">'+data[5]+'</h3></div></div>';
             content += '<div class="row"><div class="col-md-12"><p id="evento-descricao">'+data[3]+'</p></div></div>'
-            content += '<div class="row"><div class="col-md-12"><a id="evento-url" href='+data[4]+'>Saiba Mais</a></div></div>'
+            content += '<div class="row"><div class="col-md-12"><a id="evento-url" href='+data[4]+' target="_blank"> > Saiba Mais</a></div></div>'
             content += '</div></div></div>';
             return content;
           }
@@ -186,8 +186,8 @@
         }
       })
       // Insere a data do Evento
-      var d = new Date(evento.rule.startsOn + ' ' + evento.rule.startsAt);
-      eventoDados.push(d.toLocaleFormat('%d/%m - %H:%M'));
+      var d = new Date(evento.starts_on + 'T' + evento.starts_at + '.000Z');
+      eventoDados.push(d.toISOString().slice(8,10) + '/' + d.toISOString().slice(5,7) + ' - ' +  d.toISOString().slice(11,13) + ':' + d.toISOString().slice(14,16));
       // Retorna os Dados
       return eventoDados;
     }
@@ -233,6 +233,8 @@
     });
 
     // Efetua a Requisição dos Eventos em geral à partir da Data Atual
+    $.ajaxSetup({cache:false});
+    $.support.cors = true;
     $.getJSON(
       'http://estadodacultura.sp.gov.br/api/event/findOccurrences',
       {

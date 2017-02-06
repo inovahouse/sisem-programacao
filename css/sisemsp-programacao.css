@@ -119,3 +119,10 @@
   padding: 10px 0 0 0 !important;
   font-weight: bold;
 }
+#sisem-programacao-conteudo #eventos .evento .evento-conteudo a#evento-url,
+#sisem-programacao-conteudo #eventos .evento .evento-conteudo a#evento-url:hover,
+#sisem-programacao-conteudo #eventos .evento .evento-conteudo a#evento-url:visited {
+  color: #cd3333;
+  font-weight: bold;
+  text-decoration: none;
+}
