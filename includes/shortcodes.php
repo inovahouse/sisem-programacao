@@ -27,9 +27,11 @@ class SISEM_Shortcodes {
     wp_register_script( 'bootstrap-calendar', $js_path.'/bootstrap-datepicker.min.js', array( 'jquery' ), '', true );
     wp_register_script( 'datatables', $js_path.'/jquery.dataTables.min.js', array(), '', true );
     wp_register_style( 'datatables-css', $css_path.'/jquery.dataTables.min.css');
+    wp_register_style( 'sisemsp-programacao', $css_path.'/sisemsp-programacao.css');
     wp_enqueue_script( 'bootstrap-calendar' );
     wp_enqueue_script( 'datatables' );
     wp_enqueue_style( 'datatables-css' );
+    wp_enqueue_style( 'sisemsp-programacao' );
     return $this->layout_render('pagina', 'conteudo');
 
   }

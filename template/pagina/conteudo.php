@@ -33,11 +33,6 @@
           <div class="data-selecionada"></div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-12 form-group">
-          <button id="filtrar" class="btn btn-lg btn-danger">FILTRAR</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -58,64 +53,101 @@
     var museu_selecionado = 'Todos';
     var linguagem_selecionada = 'Todos';
     var listagem;
+    var museusListagem = [];
+
     var args = {
       data: eventos,
+      searching: false,
+      lengthChange: false,
       columns : [
         { title: 'ID', visible: false },
         {
           title: 'Eventos da Programação',
           data: null,
           render: function (data, type, row) {
-            content = '<div id="evento-'+data[0]+'" "class="container-fluid">';
+            content = '<div id="evento-'+data[0]+'" class="container-fluid evento">';
             content += '<div class="row">';
-            content += '<div class="col-md-3"><div class="row"><img src="'+data[1]+'" class="img-rounded"></div></div>';
-            content += '<div class="col-md-9">'
-            content += '<div class="row"><div class="col-md-12"><h3 id="evento-nome">'+data[2]+'</h3></div></div>';
+            content += '<div class="col-md-6 evento-foto" style="background-image: url('+data[1]+')"><p id="evento-data">'+data[6]+' horas</p><p id="evento-nome">'+data[2]+'</p></div>';
+            content += '<div class="col-md-6 evento-conteudo">'
+            content += '<div class="row"><div class="col-md-12"><h3 id="evento-museu">'+data[5]+'</h3></div></div>';
             content += '<div class="row"><div class="col-md-12"><p id="evento-descricao">'+data[3]+'</p></div></div>'
             content += '<div class="row"><div class="col-md-12"><a id="evento-url" href='+data[4]+'>Saiba Mais</a></div></div>'
             content += '</div></div></div>';
             return content;
           }
         }
-      ]
+      ],
+      'language': {
+        "sEmptyTable": "Nenhum evento encontrado",
+        "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ eventos",
+        "sInfoEmpty": "Mostrando 0 até 0 de 0 eventos",
+        "sInfoFiltered": "(Filtrados de _MAX_ eventos)",
+        "sInfoPostFix": "",
+        "sInfoThousands": ".",
+        "sLengthMenu": "Resultados por Página _MENU_",
+        "sLoadingRecords": "Carregando...",
+        "sProcessing": "Processando...",
+        "sZeroRecords": "Nenhum evento encontrado",
+        "sSearch": "Pesquisar",
+        "oPaginate": {
+           "sNext": "Próximo",
+           "sPrevious": "Anterior",
+           "sFirst": "Primeiro",
+           "sLast": "Último"
+        },
+        "oAria": {
+           "sSortAscending": ": Ordenar colunas de forma ascendente",
+           "sSortDescending": ": Ordenar colunas de forma descendente"
+        }
+      }
     }
 
     // Filtra os Eventos na Lista de Eventos
     function filtraEventos(museuID, linguagemID, data) {
 
+      eventos = [];
+
       // Verifica se a opção Todos os Museus está selecionada
       if (museuID == 'Todos') {
-        buscaMuseu = 'IN ('+museus.join()+')';
+        buscaMuseu = museus;
       }
       else {
-        buscaMuseu = 'EQ ('+museuID+')';
+        buscaMuseu = [parseInt(museuID)];
       }
 
       // Verifica se a opção Todos as Linguagens está selecionada
       if (linguagemID == 'Todos') {
-        buscaLinguagem = 'NULL ()';
+        buscaLinguagem = '';
       }
       else {
-        buscaLinguagem = 'EQ ('+linguagemID+')';
+        buscaLinguagem = linguagemID;
       }
 
 
       // Efetua a Requisição dos Eventos em geral à partir da Data Atual
       $.getJSON(
-        'http://estadodacultura.sp.gov.br/api/event/findByLocation',
+        'http://estadodacultura.sp.gov.br/api/event/findOccurrences',
         {
           '@from': data,
           '@to': data,
-          '@select': 'id,name,location,shortDescription,singleUrl',
-          '@files': '(avatar):url',
+          '@select': 'id,name,shortDescription,singleUrl,terms',
+          '@files': '(header,avatar):url',
           '@order': 'name ASC',
-          'space': buscaMuseu,
-          'term:linguagem': buscaLinguagem
         },
         function (response){
           $.each(response, function(k,v) {
-            // Insere o Evento dentro do Array com todos os Eventos
-            eventos.push(renderEvento(v));
+            if ($.inArray(v.space.id, buscaMuseu) >= 0) {
+              if (buscaLinguagem != '') {
+                if ($.inArray(buscaLinguagem, v.terms.linguagem) >= 0) {
+                  // Insere o Evento dentro do Array com todos os Eventos
+                  eventos.push(renderEvento(v));
+                }
+              }
+              else {
+                // Insere o Evento dentro do Array com todos os Eventos
+                eventos.push(renderEvento(v));
+              }
+            }
           });
           // Inicializa a dataTable com a programação
           listagem.clear().rows.add(eventos).draw()
@@ -127,11 +159,14 @@
     function renderEvento(evento) {
       var eventoDados = [evento.id];
       // Insere a Imagem do Evento
-      if (typeof evento['@files:avatar'] != 'undefined') {
+      if (typeof evento['@files:header'] != 'undefined') {
+        eventoDados.push(evento['@files:header'].url);
+      }
+      else if (typeof evento['@files:avatar'] != 'undefined') {
         eventoDados.push(evento['@files:avatar'].url);
       }
       else {
-        eventoDados.push('');
+        eventoDados.push('http://estadodacultura.sp.gov.br/assets/img/fundo.png');
       }
       // Insere o Título do Evento
       eventoDados.push(evento.name);
@@ -140,10 +175,19 @@
         eventoDados.push(evento.shortDescription);
       }
       else {
-        eventoDados.push('');
+        eventoDados.push('Nenhuma descrição disponível.');
       }
       // Insere a Descrição do Evento
       eventoDados.push(evento.singleUrl);
+      // Insere o Museu do Evento
+      $.each(museusListagem, function(k,v) {
+        if(evento.space.id == v.id) {
+          eventoDados.push(v.name);
+        }
+      })
+      // Insere a data do Evento
+      var d = new Date(evento.rule.startsOn + ' ' + evento.rule.startsAt);
+      eventoDados.push(d.toLocaleFormat('%d/%m - %H:%M'));
       // Retorna os Dados
       return eventoDados;
     }
@@ -161,7 +205,7 @@
     // Renderiza as Linguagens na Lista de Linguagens
     function renderLinguagens(linguagem) {
       var item = jQuery('<option />', {
-        value: linguagem.value,
+        value: linguagem.label,
         text: linguagem.label
       });
       jQuery('#lista-de-linguagens').append(item);
@@ -177,6 +221,7 @@
       },
       function(response) {
         $.each(response, function (k,v) {
+          museusListagem.push(v);
           renderMuseus(v);
         });
       }
@@ -189,19 +234,19 @@
 
     // Efetua a Requisição dos Eventos em geral à partir da Data Atual
     $.getJSON(
-      'http://estadodacultura.sp.gov.br/api/event/findByLocation',
+      'http://estadodacultura.sp.gov.br/api/event/findOccurrences',
       {
         '@from': data_selecionada,
-        '@to': data_selecionada,
-        '@select': 'id,name,location,shortDescription,singleUrl',
-        '@files': '(avatar):url',
+        '@select': 'id,name,shortDescription,singleUrl,terms',
+        '@files': '(header,avatar):url',
         '@order': 'name ASC',
-        'space': 'IN ('+museus.join()+')'
       },
       function (response){
         $.each(response, function(k,v) {
           // Insere o Evento dentro do Array com todos os Eventos
-          eventos.push(renderEvento(v));
+          if ($.inArray(v.space.id,museus) >= 0) {
+            eventos.push(renderEvento(v));
+          }
         });
         // Inicializa a dataTable com a programação
         listagem = $("#eventos").DataTable(args);
@@ -212,9 +257,11 @@
     var datepicker = $('#sisem-programacao-lateral div.data-selecionada').datepicker({
         language: "pt-BR",
         orientation: "auto left",
+        todayHighlight: true
     }).on('changeDate', function(e) {
       var d = new Date(e.date);
       data_selecionada = d.toISOString().slice(0,10);
+      filtraEventos(museu_selecionado, linguagem_selecionada, data_selecionada);
     });
 
 
@@ -222,18 +269,13 @@
     $(document).on('change', '#lista-de-museus', function(e) {
       e.preventDefault();
       museu_selecionado = $(this).val();
+      filtraEventos(museu_selecionado, linguagem_selecionada, data_selecionada);
     });
 
     // Adiciona o Filtro por Linguagem Selecionada
     $(document).on('change', '#lista-de-linguagens', function(e) {
       e.preventDefault();
       linguagem_selecionada = $(this).val();
-    });
-
-    // Adiciona a ação do botão Buscar
-    $(document).on('click', '#filtrar', function(e) {
-      e.preventDefault();
-      eventos = [];
       filtraEventos(museu_selecionado, linguagem_selecionada, data_selecionada);
     });
 

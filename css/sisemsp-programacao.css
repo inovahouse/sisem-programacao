@@ -1,0 +1,121 @@
+#sisem-programacao-lateral {
+  border: 1px solid #f5f5f5;
+  padding: 0;
+}
+#sisem-programacao-lateral h3.titulo {
+  margin: -14px 0;
+  font-size: 18px;
+  text-transform: uppercase;
+  background: #fff;
+  width: 100px;
+  padding: 0 10px;
+}
+#sisem-programacao-lateral p.descricao {
+  font-size: 14px;
+  padding: 12px 0;
+}
+#sisem-programacao-lateral label,
+#sisem-programacao-conteudo label {
+  color: #444;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+#sisem-programacao-lateral select,
+#sisem-programacao-conteudo input,
+#sisem-programacao-conteudo select {
+  background: #f5f5f5;
+  color: #454545;
+  font-weight: bold;
+  text-transform: uppercase;
+  border:1px solid #f5f5f5;
+}
+#sisem-programacao-lateral .datepicker {
+  background: #f5f5f5;
+  padding: 0 10px;
+}
+#sisem-programacao-lateral .datepicker .day {
+  color: #454545;
+  font-weight: bold;
+  text-align: center;
+}
+#sisem-programacao-lateral .datepicker .old,
+#sisem-programacao-lateral .datepicker .new {
+  color: #999 !important;
+}
+#sisem-programacao-lateral .datepicker .active,
+#sisem-programacao-lateral .datepicker .today {
+  background: #cd3333;
+  color: #fff !important;
+}
+#sisem-programacao-conteudo .dataTables_wrapper .dataTables_filter {
+  overflow: hidden;
+}
+#sisem-programacao-conteudo .dataTables_wrapper .sorting {
+  padding: 10px 0;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f5f5f5;
+}
+#sisem-programacao-conteudo .dataTables_wrapper .dataTables_paginate .paginate_button {
+  border: 0 !important;
+  background: #444;
+  color: #fff !important;
+}
+#sisem-programacao-conteudo .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #f5f5f5;
+  color: #444 !important;
+}
+#sisem-programacao-conteudo .dataTables_wrapper table thead th {
+  height: 0px;
+  overflow: hidden;
+  visibility: hidden;
+  padding: 0 !important;
+  line-height: 0;
+}
+#sisem-programacao-conteudo #eventos .evento {
+  max-height: 230px;
+}
+#sisem-programacao-conteudo #eventos .evento .evento-foto {
+  min-height: 230px;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  padding: 0;
+}
+#sisem-programacao-conteudo #eventos .evento .evento-foto p#evento-data {
+  background: #cd3333;
+  color: #fff;
+  font-weight: bold;
+  font-size: 20px;
+  text-align: right;
+  position: absolute;
+  right: 15px;
+  padding: 0 10px;
+}
+#sisem-programacao-conteudo #eventos .evento .evento-foto p#evento-nome {
+  background: #fff;
+  color: #cd3333;
+  font-weight: bold;
+  font-size: 20px;
+  text-align: right;
+  position: absolute;
+  right: 15px;
+  top: 40px;
+  padding: 0 10px;
+  width: 80%;
+}
+#sisem-programacao-conteudo #eventos .evento .evento-conteudo {
+  background: #f5f5f5;
+  color: #454545;
+  max-height: 230px;
+  height: 230px;
+}
+#sisem-programacao-conteudo #eventos .evento .evento-conteudo .col-md-12 {
+  padding: 0 10px;
+}
+#sisem-programacao-conteudo #eventos .evento .evento-conteudo h3#evento-museu {
+  font-size: 16px !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+  padding: 10px 0 0 0 !important;
+  font-weight: bold;
+}
