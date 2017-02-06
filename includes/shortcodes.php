@@ -38,6 +38,10 @@ class SISEM_Shortcodes {
 
   // Renderiza o Shortcode [sisem-destaque]
   public function shortcode_destaque( $params ) {
+    $js_path = plugins_url().'/sisem-programacao/js';
+    $css_path = plugins_url().'/sisem-programacao/css';
+    wp_register_style( 'sisemsp-programacao', $css_path.'/sisemsp-programacao.css');
+    wp_enqueue_style( 'sisemsp-programacao' );
     return $this->layout_render('bloco', 'conteudo');
   }
 }
